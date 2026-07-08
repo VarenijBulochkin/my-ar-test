@@ -1,47 +1,71 @@
 <!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Мой первый WebAR</title>
-    
-    <!-- Подключаем библиотеку model-viewer -->
-    <script type="module" 
-            src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js">
-    </script>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Подключаем A-Frame (движок для 3D в вебе) -->
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <!-- Подключаем MindAR (библиотека для распознавания картинок) -->
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
     
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 20px;
-            background: #f0f0f0;
-        }
-        model-viewer {
-            width: 100%;
-            height: 500px;
-            background-color: #ffffff;
-            border-radius: 12px;
-        }
-        h1 { color: #333; }
+      body { margin: 0; }
+      /* Кнопка старта камеры */
+      #start-button {
+        position: absolute;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 999;
+        padding: 10px 20px;
+        background: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+        cursor: pointer;
+      }
     </style>
-</head>
-<body>
-    <h1>🚀 Мой первый WebAR</h1>
-    <p>Покрутите астронавта пальцем. На телефоне появится кнопка AR.</p>
-    
-    <model-viewer 
-        src="assets/astronaut.glb" 
-        alt="3D модель астронавта"
-        ar 
-        ar-modes="webxr scene-viewer quick-look"
-        camera-controls 
-        auto-rotate
-        shadow-intensity="1">
-    </model-viewer>
-    
-    <p style="margin-top: 20px; color: #666;">
-        Если вы на телефоне — нажмите на кнопку с иконкой куба внизу модели.
-    </p>
-</body>
+  </head>
+  <body>
+    <!-- Кнопка нужна, потому что браузеры требуют клика для запуска камеры -->
+    <button id="start-button">Запустить AR</button>
+
+    <!-- Сцена AR -->
+    <a-scene 
+        mindar-image="imageTargetSrc: ./assets/targets.mind;" 
+        color-space="sRGB" 
+        renderer="colorManagement: true, physicallyCorrectLights" 
+        vr-mode-ui="enabled: false" 
+        device-orientation-permission-ui="enabled: false">
+      
+      <!-- Ресурсы (наша модель) -->
+      <a-assets>
+        <a-asset-item id="astronautModel" src="./assets/astronaut.glb"></a-asset-item>
+      </a-assets>
+
+      <!-- Камера -->
+      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+      <!-- Целевая зона (targetIndex: 0 означает первый маркер в файле targets.mind) -->
+      <a-entity mindar-image-target="targetIndex: 0">
+        <!-- Размещаем модель. scale - размер, position - смещение относительно центра картинки -->
+        <a-gltf-model 
+            src="#astronautModel" 
+            rotation="0 0 0" 
+            position="0 0 0" 
+            scale="0.5 0.5 0.5">
+        </a-gltf-model>
+      </a-entity>
+    </a-scene>
+
+    <script>
+      // Логика кнопки "Запустить"
+      const startButton = document.querySelector('#start-button');
+      const scene = document.querySelector('a-scene');
+
+      startButton.addEventListener('click', () => {
+        startButton.style.display = 'none'; // Скрываем кнопку
+        scene.systems['mindar-image-system'].start(); // Запускаем камеру
+      });
+    </script>
+  </body>
 </html>
